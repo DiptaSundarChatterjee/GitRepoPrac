@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-time Analytics Dashboard</title>
+</head>
+<body>
+  <h1>Real-time Analytics Dashboard</h1>
+  <div id="analytics">
+    <p>Loading...</p>
+  </div>
+
+  <form id="analyticsForm">
+    <label for="valueInput">Value:</label>
+    <input type="number" id="valueInput" name="valueInput" required>
+    <button type="submit">Add Data</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    socket.on('analyticsUpdate', (data) => {
+      const analyticsDiv = document.getElementById('analytics');
+      analyticsDiv.innerHTML = `<p>Latest Analytics Data: ${data.value}</p>`;
+    });
+
+    const analyticsForm = document.getElementById('analyticsForm');
+    analyticsForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const value = document.getElementById('valueInput').value;
+
+      try {
+        const response = await fetch('/analytics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to add analytics data');
+        }
+
+        const newAnalyticsData = await response.json();
+        console.log('New Analytics Data:', newAnalyticsData);
+
+      } catch (error) {
+        console.error('Error adding analytics:', error);
+      }
+    });
+  </script>
+</body>
+</html>
